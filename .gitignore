@@ -1,0 +1,13 @@
+node_modules/
+dist/
+.DS_Store
+*.log
+.env
+
+# Local capture exports can be large; keep only intentional files.
+public/capture/*
+!public/capture/.gitkeep
+
+# Keep generated source assets out of Git until the final selected versions are known.
+public/assets/aholo/*
+!public/assets/aholo/.gitkeep
