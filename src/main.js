@@ -124,12 +124,14 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 sceneRoot.appendChild(renderer.domElement);
 
 const controls = new OrbitControls(camera, renderer.domElement);
-controls.target.set(0, 1.72, -2.2);
+controls.target.set(0, 1.52, -2.05);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.enablePan = false;
-controls.minDistance = 3.8;
-controls.maxDistance = 7.8;
+controls.minDistance = 4.2;
+controls.maxDistance = 6.4;
+controls.minAzimuthAngle = -Math.PI * 0.24;
+controls.maxAzimuthAngle = Math.PI * 0.24;
 controls.minPolarAngle = Math.PI * 0.34;
 controls.maxPolarAngle = Math.PI * 0.49;
 
@@ -245,16 +247,16 @@ function buildRoom() {
   box("left-wall", [0.2, 7, 12], [-6.8, 3.25, 0], 0xf0c9a5);
   box("right-wall", [0.2, 7, 12], [6.8, 3.25, 0], 0xf5d7b5);
 
-  box("table-top", [5.9, 0.34, 3.4], [0, 2.05, -0.55], colors.table, { roughness: 0.62 });
+  box("table-top", [4.6, 0.28, 2.8], [0, 1.27, -0.55], colors.table, { roughness: 0.62 });
   for (const x of [-2.15, 2.15]) {
-    for (const z of [-1.65, 0.55]) cylinder("table-leg", 0.27, 2.05, [x, 0.95, z - 0.55], colors.wood);
+    for (const z of [-1.25, 0.15]) cylinder("table-leg", 0.23, 1.25, [x, 0.62, z - 0.55], colors.wood);
   }
 
   for (const x of [-1.7, 0, 1.7]) {
-    cylinder("plate", 0.58, 0.08, [x, 2.28, -0.5], colors.ceramic, { roughness: 0.38 });
-    cylinder("bowl", 0.32, 0.18, [x, 2.4, -0.5], colors.ceramic, { roughness: 0.32 });
-    box("chopstick-a", [0.07, 0.06, 0.82], [x - 0.25, 2.45, -0.55], colors.wood, { roughness: 0.5 });
-    box("chopstick-b", [0.07, 0.06, 0.82], [x - 0.1, 2.45, -0.55], colors.wood, { roughness: 0.5 });
+    cylinder("plate", 0.5, 0.08, [x, 1.42, -0.5], colors.ceramic, { roughness: 0.38 });
+    cylinder("bowl", 0.28, 0.16, [x, 1.54, -0.5], colors.ceramic, { roughness: 0.32 });
+    box("chopstick-a", [0.06, 0.05, 0.72], [x - 0.22, 1.59, -0.55], colors.wood, { roughness: 0.5 });
+    box("chopstick-b", [0.06, 0.05, 0.72], [x - 0.08, 1.59, -0.55], colors.wood, { roughness: 0.5 });
   }
 
   personPlaceholders.aunt = createPerson("aunt", [-2.2, 0, -2.75], colors.shirtYellow, 0.1);
@@ -316,6 +318,52 @@ function loadAholoAunt() {
     undefined,
     () => {
       setMessage("占位角色", "Aholo 模型暂时没有加载成功，当前仍使用程序化角色。");
+    },
+  );
+}
+
+function loadAholoTable() {
+  const loader = new GLTFLoader();
+  loader.load(
+    "/assets/aholo/dining-table.glb",
+    (gltf) => {
+      const model = gltf.scene;
+      const bounds = new THREE.Box3().setFromObject(model);
+      const size = bounds.getSize(new THREE.Vector3());
+      // The generated asset is tiny and has a shallow source height. Fit each
+      // axis separately so the tabletop does not become as tall as the aunt.
+      const targetWidth = 4.6;
+      const targetHeight = 1.25;
+      const targetDepth = 2.8;
+      model.scale.set(
+        targetWidth / Math.max(size.x, 0.001),
+        targetHeight / Math.max(size.y, 0.001),
+        targetDepth / Math.max(size.z, 0.001),
+      );
+
+      const scaledBounds = new THREE.Box3().setFromObject(model);
+      model.position.set(
+        -((scaledBounds.min.x + scaledBounds.max.x) / 2),
+        1.42 - scaledBounds.max.y,
+        -0.55 - ((scaledBounds.min.z + scaledBounds.max.z) / 2),
+      );
+      model.traverse((node) => {
+        if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+      room.add(model);
+      room.children
+        .filter((child) => child.name === "table-top" || child.name === "table-leg")
+        .forEach((child) => {
+          child.visible = false;
+        });
+      setMessage("Aholo 资产已接入", "姑妈和餐桌都已替换为 Aholo 生成的 3D 资产。");
+    },
+    undefined,
+    () => {
+      setMessage("程序化餐桌", "餐桌模型暂时没有加载成功，当前仍使用程序化餐桌。");
     },
   );
 }
@@ -491,4 +539,5 @@ function animate() {
 
 updateTopic();
 loadAholoAunt();
+loadAholoTable();
 animate();
