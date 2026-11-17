@@ -11,3 +11,4 @@ public/capture/*
 # Keep generated source assets out of Git until the final selected versions are known.
 public/assets/aholo/*
 !public/assets/aholo/.gitkeep
+!public/assets/aholo/aunt.glb
