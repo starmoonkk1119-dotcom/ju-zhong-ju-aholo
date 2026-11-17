@@ -22,6 +22,16 @@ npm run server
 
 Keep `.env` private. The browser calls `/api/respond`; the API key stays in the local Node server. If the key is missing or the model request fails, the experience uses the built-in fallback dialogue logic.
 
+## Deploy the public demo
+
+The project includes Vercel serverless routes under `api/` so the public demo can keep using DeepSeek without exposing the API key in the browser.
+
+1. Import this GitHub repository into Vercel.
+2. Add `DEEPSEEK_API_KEY` as a Vercel environment variable.
+3. Add `DEEPSEEK_MODEL` with `deepseek-chat`.
+4. Add `DEEPSEEK_BASE_URL` with `https://api.deepseek.com`.
+5. Deploy and test `/api/health` before sharing the public demo URL.
+
 ## Current vertical slice
 
 - First-person 3D dining-room scene
