@@ -260,7 +260,7 @@ function buildRoom() {
   }
 
   personPlaceholders.aunt = createPerson("aunt", [-2.2, 0, -2.75], colors.shirtYellow, 0.1);
-  createPerson("mother", [2.1, 0, -2.75], colors.shirtGreen, -0.1);
+  personPlaceholders.mother = createPerson("mother", [2.1, 0, -2.75], colors.shirtGreen, -0.1);
   createPerson("cousin", [0, 0, -4.1], colors.shirtBlue, Math.PI);
   createSpeechBubble([-2.4, 3.05, -2.6]);
   createSpeechBubble([2.3, 3.05, -2.6]);
@@ -318,6 +318,43 @@ function loadAholoAunt() {
     undefined,
     () => {
       setMessage("占位角色", "Aholo 模型暂时没有加载成功，当前仍使用程序化角色。");
+    },
+  );
+}
+
+function loadAholoMother() {
+  const loader = new GLTFLoader();
+  loader.load(
+    "/assets/aholo/mother.glb",
+    (gltf) => {
+      const model = gltf.scene;
+      const bounds = new THREE.Box3().setFromObject(model);
+      const size = bounds.getSize(new THREE.Vector3());
+      const targetHeight = 2.55;
+      const scale = targetHeight / Math.max(size.y, 0.001);
+      model.scale.setScalar(scale);
+
+      const scaledBounds = new THREE.Box3().setFromObject(model);
+      const target = personPlaceholders.mother;
+      model.position.set(
+        target.position.x,
+        target.position.y - scaledBounds.min.y,
+        target.position.z,
+      );
+      model.rotation.y = target.rotation.y;
+      model.traverse((node) => {
+        if (node.isMesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+      room.add(model);
+      target.visible = false;
+      setMessage("妈妈角色已接入", "新的卡通妈妈角色已经进入饭桌场景。");
+    },
+    undefined,
+    () => {
+      setMessage("程序化妈妈", "妈妈模型暂时没有加载成功，当前仍使用程序化角色。");
     },
   );
 }
@@ -539,5 +576,6 @@ function animate() {
 
 updateTopic();
 loadAholoAunt();
+loadAholoMother();
 loadAholoTable();
 animate();
